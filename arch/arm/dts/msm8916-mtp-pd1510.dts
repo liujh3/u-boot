@@ -1,0 +1,147 @@
+/dts-v1/;
+
+#include "msm8916-mtp.dtsi"
+
+/ {
+	model = "Qualcomm Technologies, Inc. MSM 8916 MTP - PD1510";
+	compatible = "qcom,msm8916-mtp", "qcom,msm8916", "qcom,mtp";
+	qcom,board-id = <8 18>;
+};
+
+&soc {
+	qcom,wdt@b017000 {
+		qcom,bark-time = <20000>;
+		qcom,pet-time = <15000>;
+	};
+
+	i2c_3: i2c@78b7000 { /* BLSP1 QUP3 */
+		compatible = "qcom,i2c-msm-v2";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		reg-names = "qup_phys_addr";
+		reg = <0x78b7000 0x1000>;
+		interrupt-names = "qup_irq";
+		interrupts = <0 97 0>;
+		qcom,clk-freq-out = <400000>;
+		qcom,clk-freq-in  = <19200000>;
+		clock-names = "iface_clk", "core_clk";
+		clocks = <&clock_gcc clk_gcc_blsp1_ahb_clk>,
+			<&clock_gcc clk_gcc_blsp1_qup3_i2c_apps_clk>;
+		qcom,use-pinctrl;
+		pinctrl-names = "i2c_active", "i2c_sleep";
+		pinctrl-0 = <&i2c_3_active>;
+		pinctrl-1 = <&i2c_3_sleep>;
+		qcom,noise-rjct-scl = <0>;
+		qcom,noise-rjct-sda = <0>;
+		dmas = <&dma_blsp1 8 64 0x20000020 0x20>,
+			<&dma_blsp1 9 32 0x20000020 0x20>;
+		dma-names = "tx", "rx";
+		qcom,master-id = <86>;
+	};
+
+	qcom,msm-imem@8600000 {
+		download_mode@0 {
+			compatible = "qcom,msm-imem-download_mode";
+			reg = <0x0 8>;
+		};
+
+		emergency_download_mode@fe0 {
+			compatible = "qcom,msm-imem-emergency_download_mode";
+			reg = <0xfe0 12>;
+		};
+	};
+};
+
+&pm8916_pon {
+	qcom,pon_1 {
+		qcom,s2-type = <7>;
+	};
+
+	qcom,pon_2 {
+		qcom,support-reset = <0>;
+		qcom,s1-timer = <10256>;
+		qcom,s2-timer = <2000>;
+		qcom,s2-type = <1>;
+	};
+};
+
+&pm8916_vadc{
+	chan@11 {
+		label = "usbid_vol";
+		reg = <0x11>;
+		qcom,decimation = <0>;
+		qcom,pre-div-channel-scaling = <0>;
+		qcom,calibration-type = "absolute";
+		qcom,scale-function = <0>;
+		qcom,hw-settle-time = <0>;
+		qcom,fast-avg-setup = <0>;
+	};
+};
+
+&tlmm_pinmux {
+		sdhc2_cd_pin {
+				cd_off {
+					bias-pull-up;
+				};
+			};
+		pmx_sdc2_cmd {
+			qcom,pins = <&sdc 5>;
+			qcom,num-grp-pins = <1>;
+			label = "sdc2-cmd";
+			sdc2_cmd_on: cmd_on {
+				bias-pull-up; /* pull up */
+				drive-strength = <12>; /* 10 MA */
+			};
+			sdc2_cmd_off: cmd_off {
+				bias-pull-up; /* pull up */
+				drive-strength = <2>; /* 2 MA */
+			};
+		};
+		usb-id-pin {
+		      qcom,pins = <&gp 110>;
+		      qcom,num-grp-pins = <1>;
+		      qcom,pin-func = <0>;
+		      label = "usbid-vol-pin";
+		usbid_vol_default: default {
+			       drive-strength = <8>;
+			      /*bias-pull-up;*/
+			        output-high;
+				};
+			};
+	pmx_i2c_3 {
+		/* CLK, DATA */
+		qcom,pins = <&gp 11>, <&gp 10>;
+		qcom,num-grp-pins = <2>;
+		qcom,pin-func = <2>;
+		label = "pmx_i2c_3";
+
+		i2c_3_active: i2c_3_active {
+			drive-strength = <2>; /* 2 MA */
+			bias-disable;		  /* No PULL */
+		};
+
+		i2c_3_sleep: i2c_3_sleep {
+			drive-strength = <2>; /* 2 MA */
+			bias-disable;		  /* No PULL */
+		};
+	};
+
+};
+
+&sdhc_1 {
+	qcom,vdd-always-on;
+};
+
+&sdhc_2 {
+	qcom,clk-rates = <400000 25000000 50000000 100000000>;
+	cd-gpios = <&msm_gpio 38 0>;
+};
+
+&usb_otg {
+       qcom,hsusb-otg-mode = <3>;
+       qcom,usbidvol-gpio = <&msm_gpio 110 0>;
+       pinctrl-names = "default";
+       pinctrl-0 = <&usbid_vol_default>;
+	   qcom,usbidvol-vadc = <&pm8916_vadc>;
+	   qcom,usbid_adc_used;
+};
