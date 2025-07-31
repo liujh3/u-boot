@@ -1,0 +1,8 @@
+PD1510 BOARD
+M:	Stephan Gerhold <stephan@gerhold.net>
+R:	Sam Day <me@samcday.com>
+S:	Maintained
+F:	board/qualcomm/pd1510/
+F:	include/configs/pd1510.h
+F:	configs/pd1510_defconfig
+F:	doc/board/qualcomm/pd1510.rst
